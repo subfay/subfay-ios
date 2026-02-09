@@ -285,7 +285,7 @@ internal class APIClient {
 
     func fetchEntitlements(externalCustomerId: String) async throws -> [String] {
         let baseURL = configuration.options.baseURL ?? configuration.environment.baseURL
-        let urlString = "\(baseURL)/v1/entitlements/\(externalCustomerId)"
+        let urlString = "\(baseURL)/entitlements/\(externalCustomerId)"
 
         guard let url = URL(string: urlString) else {
             throw InAppError.invalidConfiguration(message: "Invalid URL: \(urlString)")
