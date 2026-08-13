@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "InAppSDK",
+    name: "Subfay",
     platforms: [
         .iOS(.v13),
         .macOS(.v10_15),
@@ -11,19 +11,19 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "InAppSDK",
-            targets: ["InAppSDK"]
+            name: "Subfay",
+            targets: ["Subfay"]
         ),
     ],
     targets: [
         .target(
-            name: "InAppSDK",
+            name: "Subfay",
             path: ".",
             exclude: ["examples", "README.md"]
         ),
         .testTarget(
-            name: "InAppSDKTests",
-            dependencies: ["InAppSDK"]
+            name: "SubfayTests",
+            dependencies: ["Subfay"]
         ),
     ]
 )

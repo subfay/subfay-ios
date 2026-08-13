@@ -1,6 +1,6 @@
-# InApp Platform iOS SDK
+# Subfay iOS SDK
 
-Swift SDK for integrating InApp Platform into your iOS, macOS, tvOS, and watchOS apps.
+Swift SDK for integrating Subfay into your iOS, macOS, tvOS, and watchOS apps.
 
 ## Requirements
 
@@ -12,11 +12,11 @@ Swift SDK for integrating InApp Platform into your iOS, macOS, tvOS, and watchOS
 
 ### Swift Package Manager
 
-Add InAppSDK to your `Package.swift`:
+Add Subfay to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/yourusername/inappplatform-ios-sdk.git", from: "1.0.0")
+    .package(url: "https://github.com/yourusername/subfay-ios-sdk.git", from: "1.0.0")
 ]
 ```
 
@@ -28,7 +28,7 @@ Or in Xcode:
 ### CocoaPods
 
 ```ruby
-pod 'InAppSDK', '~> 1.0'
+pod 'Subfay', '~> 1.0'
 ```
 
 ## Quick Start
@@ -38,14 +38,14 @@ pod 'InAppSDK', '~> 1.0'
 In your `AppDelegate` or `@main` App struct:
 
 ```swift
-import InAppSDK
+import Subfay
 
 // AppDelegate
 func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
 ) -> Bool {
-    InAppSDK.configure(
+    Subfay.configure(
         apiKey: "your_api_key_here",
         environment: .production
     )
@@ -56,7 +56,7 @@ func application(
 @main
 struct MyApp: App {
     init() {
-        InAppSDK.configure(
+        Subfay.configure(
             apiKey: "your_api_key_here",
             environment: .production
         )
@@ -76,7 +76,7 @@ After user logs in:
 
 ```swift
 Task {
-    try await InAppSDK.identify(externalUserId: "user_123")
+    try await Subfay.identify(externalUserId: "user_123")
 }
 ```
 
@@ -84,7 +84,7 @@ Task {
 
 ```swift
 // Check single entitlement
-let hasPremium = try await InAppSDK.hasEntitlement("premium_access")
+let hasPremium = try await Subfay.hasEntitlement("premium_access")
 
 if hasPremium {
     // Show premium features
@@ -93,7 +93,7 @@ if hasPremium {
 }
 
 // Get all entitlements
-let entitlements = try await InAppSDK.getEntitlements()
+let entitlements = try await Subfay.getEntitlements()
 print("User has: \(entitlements)")
 ```
 
@@ -108,7 +108,7 @@ import Combine
 
 var cancellables = Set<AnyCancellable>()
 
-InAppSDK.entitlementsPublisher
+Subfay.entitlementsPublisher
     .sink { entitlements in
         print("Entitlements updated: \(entitlements)")
         self.updateUI()
@@ -119,7 +119,7 @@ InAppSDK.entitlementsPublisher
 #### Using Callback
 
 ```swift
-let subscription = InAppSDK.observeEntitlements { entitlements in
+let subscription = Subfay.observeEntitlements { entitlements in
     print("Entitlements: \(entitlements)")
 }
 
@@ -133,7 +133,7 @@ subscription.cancel()
 
 ```swift
 import SwiftUI
-import InAppSDK
+import Subfay
 
 struct ContentView: View {
     @State private var hasPremium = false
@@ -148,7 +148,7 @@ struct ContentView: View {
             }
         }
         .task {
-            hasPremium = (try? await InAppSDK.hasEntitlement("premium_access")) ?? false
+            hasPremium = (try? await Subfay.hasEntitlement("premium_access")) ?? false
         }
     }
 }
@@ -172,7 +172,7 @@ let options = ConfigOptions(
     baseURL: nil                 // Use default URL
 )
 
-InAppSDK.configure(
+Subfay.configure(
     apiKey: "your_api_key",
     environment: .production,
     options: options
@@ -184,7 +184,7 @@ InAppSDK.configure(
 Force refresh entitlements from server:
 
 ```swift
-let entitlements = try await InAppSDK.syncEntitlements()
+let entitlements = try await Subfay.syncEntitlements()
 ```
 
 ### Logout
@@ -192,14 +192,14 @@ let entitlements = try await InAppSDK.syncEntitlements()
 Clear user data:
 
 ```swift
-InAppSDK.logout()
+Subfay.logout()
 ```
 
 ## UIKit Example
 
 ```swift
 import UIKit
-import InAppSDK
+import Subfay
 
 class ViewController: UIViewController {
 
@@ -213,7 +213,7 @@ class ViewController: UIViewController {
 
     func checkPremiumAccess() async {
         do {
-            let hasPremium = try await InAppSDK.hasEntitlement("premium_access")
+            let hasPremium = try await Subfay.hasEntitlement("premium_access")
 
             if hasPremium {
                 showPremiumContent()
@@ -239,12 +239,12 @@ class ViewController: UIViewController {
 
 ```swift
 import SwiftUI
-import InAppSDK
+import Subfay
 
 @main
 struct MyApp: App {
     init() {
-        InAppSDK.configure(
+        Subfay.configure(
             apiKey: "your_api_key",
             environment: .production
         )
@@ -286,8 +286,8 @@ class ContentViewModel: ObservableObject {
 
     func identifyUser() async {
         do {
-            try await InAppSDK.identify(externalUserId: "user_123")
-            hasPremium = try await InAppSDK.hasEntitlement("premium_access")
+            try await Subfay.identify(externalUserId: "user_123")
+            hasPremium = try await Subfay.hasEntitlement("premium_access")
         } catch {
             print("Error: \(error)")
         }
@@ -300,12 +300,12 @@ class ContentViewModel: ObservableObject {
 
 ```swift
 do {
-    let entitlements = try await InAppSDK.getEntitlements()
-} catch InAppError.networkError(let message) {
+    let entitlements = try await Subfay.getEntitlements()
+} catch SubfayError.networkError(let message) {
     print("Network error: \(message)")
-} catch InAppError.authenticationError(let message) {
+} catch SubfayError.authenticationError(let message) {
     print("Auth error: \(message)")
-} catch InAppError.serverError(let statusCode, let message) {
+} catch SubfayError.serverError(let statusCode, let message) {
     print("Server error \(statusCode): \(message)")
 } catch {
     print("Unknown error: \(error)")
@@ -319,7 +319,7 @@ do {
 ```swift
 #if DEBUG
 // Use mock data in tests
-InAppSDK.configure(
+Subfay.configure(
     apiKey: "test_key",
     environment: .sandbox
 )
@@ -330,15 +330,15 @@ InAppSDK.configure(
 
 ```swift
 import XCTest
-import InAppSDK
+import Subfay
 
 class MyAppUITests: XCTestCase {
     func testPremiumFeatureAccess() async throws {
         // Identify test user
-        try await InAppSDK.identify(externalUserId: "test_user")
+        try await Subfay.identify(externalUserId: "test_user")
 
         // Check entitlement
-        let hasPremium = try await InAppSDK.hasEntitlement("premium_access")
+        let hasPremium = try await Subfay.hasEntitlement("premium_access")
         XCTAssertTrue(hasPremium)
     }
 }
@@ -370,16 +370,16 @@ Purchases.shared.getCustomerInfo { customerInfo, error in
 }
 ```
 
-### After (InApp Platform)
+### After (Subfay)
 
 ```swift
-import InAppSDK
+import Subfay
 
-InAppSDK.configure(apiKey: "your_api_key", environment: .production)
+Subfay.configure(apiKey: "your_api_key", environment: .production)
 
 Task {
-    try await InAppSDK.identify(externalUserId: "user_123")
-    let hasPremium = try await InAppSDK.hasEntitlement("premium_access")
+    try await Subfay.identify(externalUserId: "user_123")
+    let hasPremium = try await Subfay.hasEntitlement("premium_access")
     // Show premium
 }
 ```
@@ -388,11 +388,11 @@ Task {
 
 ### SDK Not Configured Error
 
-Make sure you call `InAppSDK.configure()` before using any other methods.
+Make sure you call `Subfay.configure()` before using any other methods.
 
 ### Authentication Error
 
-Call `InAppSDK.identify()` before checking entitlements.
+Call `Subfay.identify()` before checking entitlements.
 
 ### Network Errors
 
@@ -402,7 +402,7 @@ Check internet connectivity and API key validity.
 
 Clear cache manually:
 ```swift
-InAppSDK.logout()  // Clears all cached data
+Subfay.logout()  // Clears all cached data
 ```
 
 ## Performance
@@ -414,10 +414,10 @@ InAppSDK.logout()  // Clears all cached data
 
 ## Support
 
-- **Documentation**: https://docs.inappplatform.com
-- **API Reference**: https://docs.inappplatform.com/ios
-- **GitHub Issues**: https://github.com/yourusername/inappplatform-ios-sdk/issues
-- **Email**: support@inappplatform.com
+- **Documentation**: https://docs.subfay.com
+- **API Reference**: https://docs.subfay.com/ios
+- **GitHub Issues**: https://github.com/yourusername/subfay-ios-sdk/issues
+- **Email**: support@subfay.com
 
 ## License
 

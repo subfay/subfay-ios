@@ -1,13 +1,13 @@
 import Foundation
 import Combine
 
-/// InApp Platform Swift SDK
+/// Subfay Swift SDK
 /// Provides seamless entitlement management for iOS apps
-public final class InAppSDK {
+public final class Subfay {
 
     // MARK: - Singleton
 
-    public static let shared = InAppSDK()
+    public static let shared = Subfay()
     private init() {}
 
     // MARK: - Configuration
@@ -18,7 +18,7 @@ public final class InAppSDK {
 
     /// Configure the SDK with API credentials
     /// - Parameters:
-    ///   - apiKey: Your API key from InApp Platform dashboard
+    ///   - apiKey: Your API key from Subfay dashboard
     ///   - environment: The environment (.production or .sandbox)
     ///   - options: Optional configuration options
     public static func configure(
@@ -36,7 +36,7 @@ public final class InAppSDK {
         shared.apiClient = APIClient(configuration: config)
         shared.cacheManager = CacheManager(configuration: config)
 
-        InAppLogger.shared.log("SDK configured for \(environment)", level: .info)
+        SubfayLogger.shared.log("SDK configured for \(environment)", level: .info)
     }
 
     // MARK: - Customer Management
@@ -50,7 +50,7 @@ public final class InAppSDK {
     public static func identify(externalUserId: String) async throws -> Customer {
         try shared.ensureConfigured()
 
-        InAppLogger.shared.log("Identifying user: \(externalUserId)", level: .debug)
+        SubfayLogger.shared.log("Identifying user: \(externalUserId)", level: .debug)
 
         let customer = Customer(
             id: UUID().uuidString,
@@ -79,7 +79,7 @@ public final class InAppSDK {
         shared.currentCustomer = nil
         shared.cacheManager?.clearAll()
         shared.entitlementsSubject.send([])
-        InAppLogger.shared.log("User logged out", level: .info)
+        SubfayLogger.shared.log("User logged out", level: .info)
     }
 
     // MARK: - Entitlements
@@ -92,13 +92,13 @@ public final class InAppSDK {
         try shared.ensureConfigured()
 
         guard let customer = getCurrentCustomer() else {
-            throw InAppError.authenticationError(message: "No customer identified. Call identify() first.")
+            throw SubfayError.authenticationError(message: "No customer identified. Call identify() first.")
         }
 
         // Try cache first
         if let cached = shared.cacheManager?.loadEntitlements(),
            !shared.cacheManager!.isCacheExpired() {
-            InAppLogger.shared.log("Entitlements loaded from cache", level: .debug)
+            SubfayLogger.shared.log("Entitlements loaded from cache", level: .debug)
             return cached
         }
 
@@ -141,7 +141,7 @@ public final class InAppSDK {
         try shared.ensureConfigured()
 
         guard let customer = getCurrentCustomer() else {
-            throw InAppError.authenticationError(message: "No customer identified")
+            throw SubfayError.authenticationError(message: "No customer identified")
         }
 
         return try await shared.fetchEntitlementsFromServer(customer: customer)
@@ -151,18 +151,18 @@ public final class InAppSDK {
 
     private func ensureConfigured() throws {
         guard configuration != nil else {
-            throw InAppError.invalidConfiguration(
-                message: "SDK not configured. Call InAppSDK.configure() first."
+            throw SubfayError.invalidConfiguration(
+                message: "SDK not configured. Call Subfay.configure() first."
             )
         }
     }
 
     private func fetchEntitlementsFromServer(customer: Customer) async throws -> [String] {
         guard let apiClient = apiClient else {
-            throw InAppError.invalidConfiguration(message: "API client not initialized")
+            throw SubfayError.invalidConfiguration(message: "API client not initialized")
         }
 
-        InAppLogger.shared.log("Fetching entitlements from server", level: .debug)
+        SubfayLogger.shared.log("Fetching entitlements from server", level: .debug)
 
         let entitlements = try await apiClient.fetchEntitlements(
             externalCustomerId: customer.externalId
@@ -174,7 +174,7 @@ public final class InAppSDK {
         // Notify observers
         entitlementsSubject.send(entitlements)
 
-        InAppLogger.shared.log("Entitlements updated: \(entitlements)", level: .info)
+        SubfayLogger.shared.log("Entitlements updated: \(entitlements)", level: .info)
 
         return entitlements
     }
@@ -224,9 +224,9 @@ public enum Environment {
     var baseURL: String {
         switch self {
         case .production:
-            return "https://api.inappplatform.com"
+            return "https://api.subfay.com"
         case .sandbox:
-            return "https://sandbox-api.inappplatform.com"
+            return "https://sandbox-api.subfay.com"
         }
     }
 }
@@ -242,7 +242,7 @@ public enum LogLevel: Int {
 
 // MARK: - Errors
 
-public enum InAppError: LocalizedError {
+public enum SubfayError: LocalizedError {
     case networkError(message: String)
     case authenticationError(message: String)
     case invalidConfiguration(message: String)
@@ -288,24 +288,24 @@ internal class APIClient {
         let urlString = "\(baseURL)/entitlements/\(externalCustomerId)"
 
         guard let url = URL(string: urlString) else {
-            throw InAppError.invalidConfiguration(message: "Invalid URL: \(urlString)")
+            throw SubfayError.invalidConfiguration(message: "Invalid URL: \(urlString)")
         }
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue(configuration.apiKey, forHTTPHeaderField: "X-API-Key")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("InAppSDK/iOS/1.0.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("Subfay/iOS/1.0.0", forHTTPHeaderField: "User-Agent")
 
         let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw InAppError.networkError(message: "Invalid response")
+            throw SubfayError.networkError(message: "Invalid response")
         }
 
         guard (200...299).contains(httpResponse.statusCode) else {
             let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-            throw InAppError.serverError(
+            throw SubfayError.serverError(
                 statusCode: httpResponse.statusCode,
                 message: errorMessage
             )
@@ -333,9 +333,9 @@ internal class CacheManager {
     private let userDefaults = UserDefaults.standard
 
     private enum Keys {
-        static let customer = "inapp_customer"
-        static let entitlements = "inapp_entitlements"
-        static let lastSync = "inapp_last_sync"
+        static let customer = "subfay_customer"
+        static let entitlements = "subfay_entitlements"
+        static let lastSync = "subfay_last_sync"
     }
 
     init(configuration: Configuration) {
@@ -382,8 +382,8 @@ internal class CacheManager {
 
 // MARK: - Logger
 
-internal class InAppLogger {
-    static let shared = InAppLogger()
+internal class SubfayLogger {
+    static let shared = SubfayLogger()
     private init() {}
 
     private var logLevel: LogLevel = .info
@@ -405,7 +405,7 @@ internal class InAppLogger {
         case .none: return
         }
 
-        print("\(prefix) [InAppSDK] \(message)")
+        print("\(prefix) [Subfay] \(message)")
     }
 }
 
@@ -446,9 +446,9 @@ private struct EntitlementModifier: ViewModifier {
 
     private func checkEntitlement() async {
         do {
-            hasEntitlement = try await InAppSDK.hasEntitlement(entitlementKey)
+            hasEntitlement = try await Subfay.hasEntitlement(entitlementKey)
         } catch {
-            InAppLogger.shared.log("Error checking entitlement: \(error)", level: .error)
+            SubfayLogger.shared.log("Error checking entitlement: \(error)", level: .error)
         }
         isLoading = false
     }
