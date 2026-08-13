@@ -16,7 +16,7 @@ Add Subfay to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/yourusername/subfay-ios-sdk.git", from: "1.0.0")
+    .package(url: "https://github.com/subfay/subfay-ios.git", from: "1.0.0")
 ]
 ```
 
@@ -416,7 +416,7 @@ Subfay.logout()  // Clears all cached data
 
 - **Documentation**: https://docs.subfay.com
 - **API Reference**: https://docs.subfay.com/ios
-- **GitHub Issues**: https://github.com/yourusername/subfay-ios-sdk/issues
+- **GitHub Issues**: https://github.com/subfay/subfay-ios/issues
 - **Email**: support@subfay.com
 
 ## License

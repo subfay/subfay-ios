@@ -16,14 +16,6 @@ let package = Package(
         ),
     ],
     targets: [
-        .target(
-            name: "Subfay",
-            path: ".",
-            exclude: ["examples", "README.md"]
-        ),
-        .testTarget(
-            name: "SubfayTests",
-            dependencies: ["Subfay"]
-        ),
+        .target(name: "Subfay")
     ]
 )
